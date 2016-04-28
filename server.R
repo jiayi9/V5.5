@@ -1,5 +1,19 @@
 #5.5
-
+InsPack <- function(pack) { 
+  if (!pack %in% rownames(installed.packages())) { 
+    print(paste("installing",pack)) 
+    install.packages(pack) 
+  } else {
+    print(paste(pack," already installed")) 
+  }
+}
+InsPack("ggplot2")
+InsPack("gtable")
+InsPack("ClustOfVar")
+InsPack("ggdendro")
+InsPack("gridExtra")
+InsPack("scales")
+InsPack("ggvis")
 library(ggplot2)
 library(gtable)
 library(ClustOfVar)
