@@ -196,7 +196,7 @@ server <- function(input, session,output) {
     validate(need(
       ncol(attr_ranked_p())>=NUM_CLUST_A(),"The number of attributes is less than the number of clusters.\nTry decreasing the number of attributes clusters."
     ))
-    withProgress(message = 'Generating labels head', {
+    withProgress(message = 'Generating labels ', {
       D = attr_ranked_p()
       fit = ClustOfVar::hclustvar(X.quali = Random_Sample_prop(D,1))
       #fit = ClustOfVar::hclustvar(X.quali = D)
@@ -207,7 +207,7 @@ server <- function(input, session,output) {
   })
   
   attr_ranked_p_re = reactive({
-    withProgress(message = 'Rearranging Attributes head...', {
+    withProgress(message = 'Rearranging Attributes ...', {
       R = rearrange(X = attr_ranked_p(), clust = labelx())
       R
     })
@@ -299,7 +299,7 @@ server <- function(input, session,output) {
     validate(need(
       ncol(attr_ranked_p_drive())>=NUM_CLUST_A(),"The number of attributes is less than the number of clusters.\nTry decreasing the number of attributes clusters."
     ))
-    withProgress(message = 'Generating labels drive', {
+    withProgress(message = 'Generating labels', {
       D = attr_ranked_p_drive()
       fit = ClustOfVar::hclustvar(X.quali = Random_Sample_prop(D,1))
       #fit = ClustOfVar::hclustvar(X.quali = D)
@@ -310,7 +310,7 @@ server <- function(input, session,output) {
   })
   
   attr_ranked_p_re_drive = reactive({
-    withProgress(message = 'Rearranging Attributes drive...', {
+    withProgress(message = 'Rearranging Attributes', {
       R = rearrange(X = attr_ranked_p_drive(), clust = labelx_drive())
       R
     })
