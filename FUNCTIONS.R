@@ -216,9 +216,10 @@ PlotLogistGroup_jitter = function(attr,para,STATUS,attr_name="ATTR",para_name="P
   D3 = Random_Sample_prop(D,0.2)
   
   ggplot(D,aes(x=attr,y=para)) + 
+    geom_jitter(alpha=0.5)+
     geom_boxplot() + 
     geom_point(data = D2,aes(x=attr,y=para),color="red",size=4)+
-    geom_jitter(alpha=0.5)+
+
     #geom_jitter(data=D3,aes(x=attr,y=para),alpha=0.5)+
     xlab(attr_name)+
     ylab(para_name)+
