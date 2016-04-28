@@ -1,3 +1,5 @@
+#5.5
+
 library(ggplot2)
 library(gtable)
 library(ClustOfVar)
@@ -190,11 +192,11 @@ server <- function(input, session,output) {
   })
   
   
-  labelx = eventReactive(input$go,{
+  labelx = reactive({
     validate(need(
       ncol(attr_ranked_p())>=NUM_CLUST_A(),"The number of attributes is less than the number of clusters.\nTry decreasing the number of attributes clusters."
     ))
-    withProgress(message = 'Generating labels', {
+    withProgress(message = 'Generating labels head', {
       D = attr_ranked_p()
       fit = ClustOfVar::hclustvar(X.quali = Random_Sample_prop(D,1))
       #fit = ClustOfVar::hclustvar(X.quali = D)
@@ -204,8 +206,8 @@ server <- function(input, session,output) {
     })
   })
   
-  attr_ranked_p_re = eventReactive(input$go,{
-    withProgress(message = 'Rearranging Attributes...', {
+  attr_ranked_p_re = reactive({
+    withProgress(message = 'Rearranging Attributes head...', {
       R = rearrange(X = attr_ranked_p(), clust = labelx())
       R
     })
@@ -236,6 +238,8 @@ server <- function(input, session,output) {
     
     X3 = X2[order(DSN),]
     
+    X3$DSN = as.character(X3$DSN)
+
     X4 = ddply(X3,.(DSN),function(df) {
       if( sum(df$STATUS=="F")> 0){
         R = df[df$STATUS=="F",]
@@ -266,8 +270,10 @@ server <- function(input, session,output) {
     
     X = data.frame(DSN,STATUS)
     
+    X$DSN = as.character(X$DSN)
+
     X2 = X[order(DSN),]
-    
+
     X3 = ddply(X2,.(DSN),function(df) {
       if( sum(df$STATUS=="F")> 0){
         R = df[df$STATUS=="F",]
@@ -289,11 +295,11 @@ server <- function(input, session,output) {
   })
   
   
-  labelx_drive = eventReactive(input$go,{
+  labelx_drive = reactive({
     validate(need(
       ncol(attr_ranked_p_drive())>=NUM_CLUST_A(),"The number of attributes is less than the number of clusters.\nTry decreasing the number of attributes clusters."
     ))
-    withProgress(message = 'Generating labels', {
+    withProgress(message = 'Generating labels drive', {
       D = attr_ranked_p_drive()
       fit = ClustOfVar::hclustvar(X.quali = Random_Sample_prop(D,1))
       #fit = ClustOfVar::hclustvar(X.quali = D)
@@ -303,8 +309,8 @@ server <- function(input, session,output) {
     })
   })
   
-  attr_ranked_p_re_drive = eventReactive(input$go,{
-    withProgress(message = 'Rearranging Attributes...', {
+  attr_ranked_p_re_drive = reactive({
+    withProgress(message = 'Rearranging Attributes drive...', {
       R = rearrange(X = attr_ranked_p_drive(), clust = labelx_drive())
       R
     })
@@ -320,7 +326,7 @@ server <- function(input, session,output) {
           Levels = as.vector(selected_attr_levels())
           )
   })
-  
+  #---------------------------------------------------------------------
   
   para_ranked_fit = eventReactive(input$go,{
     withProgress(message = 'Ranking Parametrics...', {
