@@ -51,9 +51,21 @@ server <- function(input, session,output) {
     validate(need(sum(R=="F")>0,"No failure in data."))
     R
   })
-  
+  getLevels = function(X){
+    sapply(X,function(x) length(unique(x)))
+  }
   output$info = renderText({
-    paste("The file contains",nrow(upload()),"rows",ncol(upload()),"cols.")
+    
+    LEVELS = getLevels(upload())
+    n = sum(LEVELS==1)
+    
+    m = sum(sapply(upload(),function(x) all(is.na(x))))     
+    
+    paste("The file contains",nrow(upload()),"rows",ncol(upload()),"cols(",
+          n,"all-identical-value cols,",
+          m,"all-missing-value cols)."
+          
+          )
   })
   
   RAW = reactive({

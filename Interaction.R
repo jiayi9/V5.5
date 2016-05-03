@@ -9,7 +9,11 @@ source("global.R",local = TRUE)
 Interaction_DF = eventReactive(input$interaction,{
   withProgress(message = "Interaction!",{
     ATTR = attr_ranked_p_re()
-    ATTR = ATTR[,toupper(names(ATTR)) %in% attr_list_inter ,drop = FALSE]
+    
+    if( input$use_attr_list ){
+      ATTR = ATTR[,toupper(names(ATTR)) %in% attr_list_inter ,drop = FALSE]      
+    }
+    
     validate(need(ncol(ATTR)>0,"No Attributes in the list exist."))
     PARA = para_ranked_fit()$DATA
     STATUS = STATUS()

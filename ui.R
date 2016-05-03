@@ -126,7 +126,16 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                         br(),
                         uiOutput("hist_1"),
                         uiOutput("hist_2_x"),
-                        numericInput("onewaybarheight","Chart Height",value = 450,step=10,width = 100),
+                        
+                        fluidRow(
+                          column(2,
+                                 numericInput("onewaybarheight","Chart Height",value = 450,step=10,width = 100)
+                                 ),
+                          column(2,
+                                 br(),
+                                checkboxInput("showbarcolor","Bar Color",value = FALSE)
+                                )
+                          ),
                         hr(),
                         tags$b("Hierarchical Clustering Dendrogram"),
                         uiOutput("ATTR_CLUST_CHART")
@@ -200,7 +209,15 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                                 #textOutput("L"),
                                 h4("Attribute X Parametric Interaction (Head Level)"),
                                 hr(),
-                                actionButton("interaction","Run",class="btn btn-primary btn-sm"),
+                                fluidRow(
+                                  column(1,
+                                         actionButton("interaction","Run",class="btn btn-primary btn-sm")
+                                         ),
+                                  column(4,
+                                         checkboxInput("use_attr_list","Only Use pre-defined Attributes",value = TRUE)
+                                         )
+                                ),
+                                
                                 uiOutput("boxplots_para")                       
                        ),
                        tabPanel(
@@ -230,7 +247,7 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
 
             ),
 
-             windowTitle = "Ad Hoc Analysis",
+             windowTitle = "deepdive",
              position = "fixed-top"
            ),
 

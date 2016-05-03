@@ -73,6 +73,7 @@ output$scatterplot = renderPlot({
       #geom_smooth(method=lm) +
       stat_ellipse(type = "norm",linetype = 2)+
       xlab(namex)+ ylab(namey)+
+      theme_bw()+
       geom_point(data=temp3,aes(x=x,y=y),color="red",size=3)+
   geom_rug(data=temp3,size=0.1,color="red") +   
       theme(legend.position="none")

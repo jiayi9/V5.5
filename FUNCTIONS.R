@@ -119,11 +119,11 @@ PlotLogistGroup = function(attr,para,STATUS,attr_name="ATTR",para_name="PARA",cu
     geom_text(data=POS, aes(x=NAMES, y=position, color = COLS,
                             label=paste(" ",round(pvalues,2))    )
               , size=4
-              , vjust=0,hjust = -1.5)+
+              , vjust=0,hjust = 0.5)+
     geom_text(data=POS, aes(x=NAMES, y=position2, 
                             label=sample_size  )
               , size=4
-              , vjust=0,hjust = 1.5)+
+              , vjust=0,hjust = 0.5)+
     ggtitle(TITLE)+
     theme(plot.title = element_text(size=15,color="blue"))+
     theme(axis.title.y=element_blank())
@@ -493,7 +493,7 @@ rearrange = function(X,clust){
   }
   X[,K]
 }
-barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1){
+barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1,showbarcolor=0){
   library(ggplot2)
   library(plyr)
   library(gtable)
@@ -540,8 +540,13 @@ barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1){
           axis.title.x = element_blank(),
           plot.title = element_text( colour = COLOR,size=rel(1.4))
     )+
-    scale_y_continuous(labels  = percent)
-  return(ggplotGrob(p1))
+    scale_y_continuous(labels  = percent) 
+   if(showbarcolor==1){
+     p2 = p1 + geom_bar(stat="identity",fill = COLOR)
+   } else {
+     p2 = p1
+   }
+  return(ggplotGrob(p2))
 }
 
 data_ranked_logist = function(X,y){

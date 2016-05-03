@@ -75,7 +75,8 @@ observeEvent(input$go,{
                                names(X)[index],
                                chisq_test(X[,index],y,floor(nrow(X)*0.05)),
                                labelx,
-                               NUM_CLUST_A()
+                               NUM_CLUST_A(),
+                               showbarcolor = input$showbarcolor
                      ),envir = globalenv() 
               )
             }
@@ -129,7 +130,8 @@ observeEvent(input$go,{
                          names(X3)[Nrow*eachRow+1],
                          pvalues[Nrow*eachRow+1],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         gx = cbind(pp1, p0,p0,p0,p0, size="first")
         gx$heights = grid::unit.pmax(pp1$heights)
         
@@ -140,14 +142,16 @@ observeEvent(input$go,{
                          names(X3)[Nrow*eachRow+1],
                          pvalues[Nrow*eachRow+1],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         pp2 = barplot_1( X3[,Nrow*eachRow+2],
                          STATUS,
                          names(X3)[Nrow*eachRow+2],
                          pvalues[Nrow*eachRow+2],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         gx = cbind(pp1, pp2,p0,p0,p0, size="first")
         gx$heights = grid::unit.pmax(pp1$heights,pp2$heights)
@@ -159,21 +163,24 @@ observeEvent(input$go,{
                          names(X3)[Nrow*eachRow+1],
                          pvalues[Nrow*eachRow+1],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         pp2 = barplot_1( X3[,Nrow*eachRow+2],
                          STATUS,
                          names(X3)[Nrow*eachRow+2],
                          pvalues[Nrow*eachRow+2],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         pp3 = barplot_1( X3[,Nrow*eachRow+3],
                          STATUS,
                          names(X3)[Nrow*eachRow+3],
                          pvalues[Nrow*eachRow+3],
                          labelx,
-                         N)  
+                         N,
+                         showbarcolor = input$showbarcolor)  
         gx = cbind(pp1, pp2,pp3,p0,p0, size="first")
         gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights)
         
@@ -184,27 +191,31 @@ observeEvent(input$go,{
                          names(X3)[Nrow*eachRow+1],
                          pvalues[Nrow*eachRow+1],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         pp2 = barplot_1( X3[,Nrow*eachRow+2],
                          STATUS,
                          names(X3)[Nrow*eachRow+2],
                          pvalues[Nrow*eachRow+2],
                          labelx,
-                         N)
+                         N,
+                         showbarcolor = input$showbarcolor)
         
         pp3 = barplot_1( X3[,Nrow*eachRow+3],
                          STATUS,
                          names(X3)[Nrow*eachRow+3],
                          pvalues[Nrow*eachRow+3],
                          labelx,
-                         N)  
+                         N,
+                         showbarcolor = input$showbarcolor)  
         pp4 = barplot_1( X3[,Nrow*eachRow+4],
                          STATUS,
                          names(X3)[Nrow*eachRow+4],
                          pvalues[Nrow*eachRow+4],
                          labelx,
-                         N)  
+                         N,
+                         showbarcolor = input$showbarcolor)  
         gx = cbind(pp1, pp2,pp3,pp4,p0, size="first")
         gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights,pp4$height)
         
