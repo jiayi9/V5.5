@@ -7,12 +7,14 @@ InsPack <- function(pack) {
     print(paste(pack," already installed")) 
   }
 }
+InsPack("shiny")
 InsPack("ggplot2")
 InsPack("gtable")
 InsPack("ClustOfVar")
 InsPack("ggdendro")
 InsPack("gridExtra")
 InsPack("scales")
+InsPack("htmlwidgets")
 InsPack("ggvis")
 library(ggplot2)
 library(gtable)
