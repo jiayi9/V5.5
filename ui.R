@@ -154,18 +154,25 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                                  uiOutput("factor1"),
                                  uiOutput("factor2"),
                                  numericInput("twoway_width","2-way barplot Width",value = 900,step = 10),
-                                 numericInput("twoway_height","2-way barplot Height",value = 450,step=10),
+                                 numericInput("twoway_height","2-way barplot Height",value = 400,step=10),
                                  hr(),
                                  br(),br(),br(),br(),br(),br(),br(),
-                                 p("Custom 1-way Barplot"),
+                                 p("Other Attributes Barplots"),
+                                 #p("Custom 1-way Barplot"),
+
+                          
                                  uiOutput("factor3"),
-                                 numericInput("bar_width","1-way barplot Width",value = 600,step = 10),
+                                 numericInput("bar_width","1-way barplot Width",value = 900,step = 10),
                                  
-                                 numericInput("bar_height","1-way barplot Height",value = 450,step=10)
+                                 numericInput("bar_height","1-way barplot Height",value = 400,step=10)
                                  ),
                           column(10,
                                  
-                                 uiOutput("two_way")
+                                 uiOutput("two_way"),
+                                 br(),
+                                 h4("Summary"),
+                                 
+                                 uiOutput("text_rank")
                                  )
                           )
                         
@@ -217,6 +224,7 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                                          checkboxInput("use_attr_list","Only Use pre-defined Attributes",value = TRUE)
                                          )
                                 ),
+                                textOutput("interaction_text"),
                                 
                                 uiOutput("boxplots_para")                       
                        ),
@@ -230,16 +238,17 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                                   uiOutput("BOX_ATTR"),
                                   uiOutput("BOX_PARA"),
                                   numericInput("box_width","Chart Width",value = 900,step = 10),
-                                  numericInput("box_height","Chart Height",value = 450,step=10),
-                                  div(class = "small_table",
-                                      tableOutput("Interaction_DF")
-                                  )
+                                  numericInput("box_height","Chart Height",value = 450,step=10)
                            ),
                            column(9,
                                   uiOutput("CUSTOM_BOXPLOT")
                                   
                                   )
-                           )
+                           ),
+                         
+                         div(class = "small_table",
+                             tableOutput("Interaction_DF")
+                         )
 
 
                          

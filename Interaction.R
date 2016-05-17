@@ -152,7 +152,11 @@ output$CUSTOM_BOXPLOT = renderUI({
   )
 })
 
-
+output$interaction_text = renderText({
+  para_ranked_fit()
+  attr_ranked_p_re_drive()
+  NULL
+})
 # 
 # observeEvent(input$interaction,{
 #   

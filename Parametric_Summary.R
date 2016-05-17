@@ -117,10 +117,16 @@ output$para_clust_chart = renderPlot({
   })
 })
 
+output$para_text = renderText({
+  para_ranked_fit()
+  NULL
+})
+
 
 output$para = renderUI({
   tags$div(class = "group-output",
            actionButton("flush","FLUSH ORDER", icon = icon('fa fa-refresh')),
+           textOutput("para_text"),
            #plotOutput("para_tops",height="900px"),
            plotOutput("scatter1"),
            plotOutput("scatter2"),
@@ -135,3 +141,5 @@ output$para = renderUI({
            plotOutput("para_clust_chart")
   )
 })
+
+

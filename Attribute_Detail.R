@@ -29,7 +29,7 @@ output$factor2 <- renderUI({
 }) 
 
 output$factor3 <- renderUI({
-  selectInput("factor_3", "Factor:",  choices = names(attr_ranked_p_re_drive()),selected = names(attr_ranked_p_re_drive())[1])
+  selectInput("factor_3", "Factor:",  choices = names(ATTR_many_levels_drive()),selected = names(ATTR_many_levels_drive())[1])
 }) 
 
 output$interaction = renderPlot({
@@ -63,33 +63,42 @@ output$interaction = renderPlot({
 })
 
 output$custom_barplot = renderPlot({
-  
+#  print(names(ATTR_many_levels()))
+#  print(names(ATTR_many_levels_drive()))
+#   print(1)
   if(input$head_or_drive =="DRIVE"){
-    X = attr_ranked_p_re_drive()
+    X = ATTR_many_levels_drive()
     y = STATUS_drive()
-    labelx = labelx_drive()
+#    labelx = labelx_drive()
   } else{
-    X = attr_ranked_p_re()
+    X = ATTR_many_levels()
     y = STATUS()
-    labelx = labelx()
+#    labelx = labelx()
   }
-  
+#   print(2)
   if(is.null(input$factor_3)) {
     xname = names(X)[1]
   } else {
     xname = input$factor_3
   }
+#   print(3)
+  x = as.character(X[,xname])
+#   print(4)
+#   print(length(x))
+#   print(x)
+#   print(length(y))
+#   print(y)
   
-  x = X[,xname]
-  p = barplot_1(x,
+  p = barplot_1_custom(x,
                 y,
                 xname = xname,
                 chisq_test(x,y,floor(nrow(X)*0.05)),
-                labelx,
+                L=NULL,
                 
                 NUM_CLUST_A()
                 
   )
+  print(5)
   grid::grid.newpage()
   grid::grid.draw(p)
 })
@@ -122,5 +131,56 @@ output$two_way = renderUI({
 })
 
 
+
+observe({
+  if(input$head_or_drive =="DRIVE"){
+    X = ATTR_many_levels_drive()
+    y = STATUS_drive()
+  } else{
+    X = ATTR_many_levels()
+    y = STATUS()
+  }
+  n = ncol(X)
+  n = min(n, 20)
+  
+  validate(need(n>0,"No enough qualified long attributes"))
+  
+  output$text_rank = renderUI({
+    text_rank_output_list = lapply(1:n,function(i){
+      
+      name = paste("line",i,sep="")
+      tags$div(class = "group-output",
+               textOutput(name)
+      )
+    })
+    do.call(tagList,text_rank_output_list)
+    
+  })
+  
+  for(j in 1:n){
+    local({
+      my_i = j
+      
+      name = paste("line",my_i,sep="")
+      
+      output[[name]] = renderText({
+        x = as.character(X[,my_i])
+        
+        ListFails = function(x,y){
+          D = data.frame(x,y)
+          ddply(D,.(x), function(df) sum(df$y=="F"))$V1
+        }
+        
+        QUANT = ListFails(x,y)
+        LEN_1 = length(QUANT)
+        LEN_2 = min(LEN_1,50)
+        QUANT_2 = QUANT[1:LEN_2]
+        
+        c(names(X)[my_i],rep("-",25-nchar(names(X)[my_i])),QUANT_2)
+      })
+    })
+  }
+  
+})
 
 

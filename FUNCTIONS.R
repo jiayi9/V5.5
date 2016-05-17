@@ -504,7 +504,7 @@ barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1,showb
                fr=round(n/N,5))
   
   ii = L[L[,1]==xname,3]
-  
+
   COLOR = ggplotColours(num_clust)[ii]
   
 #   TITLE = paste(xname,"\n",
@@ -513,7 +513,6 @@ barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1,showb
 #                 ),"\n",
 #                 "p:",round(pvalue,3)
 #   )
-  
   title1 = xname
   title2 = as.character(
     L[L[,1]==xname,2]
@@ -528,7 +527,6 @@ barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1,showb
       )
     )
   )
-  
   p1 = ggplot(temp,aes(x=x,y=fr)) + 
     geom_bar(stat="identity",fill = ggplotColours(2)[2])+              #,fill=COLOR  ) + 
     geom_text(aes(label = n),stat="identity",vjust=-0.2,hjust=0.5,color="red",size=4)+
@@ -541,11 +539,80 @@ barplot_1 = function(x,FAIL,xname=" ",pvalue,L,num_clust,min_to_display=-1,showb
           plot.title = element_text( colour = COLOR,size=rel(1.4))
     )+
     scale_y_continuous(labels  = percent) 
+
    if(showbarcolor==1){
-     p2 = p1 + geom_bar(stat="identity",fill = COLOR)
+     p2 = p1 + geom_bar(stat="identity",fill = COLOR)+
+       geom_text(aes(label = labels_N),stat="identity",vjust= 1.5,hjust=0.5,color="black",size=3.5)
+       
    } else {
      p2 = p1
    }
+
+  return(ggplotGrob(p2))
+}
+
+barplot_1_custom = function(x,FAIL,xname=" ",pvalue,L=NULL,num_clust,min_to_display=-1,showbarcolor=0){
+  library(ggplot2)
+  library(plyr)
+  library(gtable)
+  D = data.frame(x,FAIL,min_to_display)
+  temp = ddply(D,"x",summarise,N=length(FAIL),n=sum(FAIL=="F"),min_to_display=mean(min_to_display))
+  temp = ddply(temp,"x",transform,
+               labels_N = ifelse(N>as.numeric(min_to_display),paste(as.character(N))," "),
+               fr=round(n/N,5))
+  
+#  ii = L[L[,1]==xname,3]
+#   print(1)
+#  COLOR = ggplotColours(num_clust)[ii]
+  
+  #   TITLE = paste(xname,"\n",
+  #                 as.character(
+  #                   L[L[,1]==xname,2]
+  #                 ),"\n",
+  #                 "p:",round(pvalue,3)
+  #   )
+#   print(2)
+#   title1 = xname
+#   title2 = as.character(
+#     L[L[,1]==xname,2]
+#   )
+#   title3 = paste("p:",round(pvalue,3))
+#   TITLE = bquote(
+#     atop(
+#       bold(.(title1)),
+#       atop(
+#         .(title2),.(title3)
+#         
+#       )
+#     )
+#   )
+#   print(3)
+  p1 = ggplot(temp,aes(x=x,y=fr)) + 
+    geom_bar(stat="identity",fill = ggplotColours(2)[2])+              #,fill=COLOR  ) + 
+    geom_text(aes(label = n),stat="identity",vjust=-0.2,hjust=0.5,color="red",size=4)+
+    geom_text(aes(label = labels_N),stat="identity",vjust= 1.5,hjust=0.5,color="black",size=3.5)+
+    ggtitle(xname)+
+    theme(legend.position="none",
+          axis.title.y=element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 0),
+          axis.title.x = element_blank(),
+          plot.title = element_text( colour = "black",size=rel(1.4))
+    )+
+    scale_y_continuous(labels  = percent) 
+  
+#   print(4)
+  if(showbarcolor==1){
+    p2 = p1 + geom_bar(stat="identity",fill = COLOR)+
+      geom_text(aes(label = labels_N),stat="identity",vjust= 1.5,hjust=0.5,color="black",size=3.5)
+    
+  } else {
+    p2 = p1
+  }
+#   print(5)
+#   print(p2)
+#   print(6)
+#   print(ggplotGrob(p2))
+#   print(7)
   return(ggplotGrob(p2))
 }
 

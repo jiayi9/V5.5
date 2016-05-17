@@ -59,13 +59,13 @@ server <- function(input, session,output) {
     LEVELS = getLevels(upload())
     n = sum(LEVELS==1)
     
-    m = sum(sapply(upload(),function(x) all(is.na(x))))     
+    m = sum(sapply(upload(),function(x) all(is.na(x))))    
     
     paste("The file contains",nrow(upload()),"rows",ncol(upload()),"cols(",
           n,"all-identical-value cols,",
           m,"all-missing-value cols)."
           
-          )
+    )
   })
   
   RAW = reactive({
@@ -87,8 +87,57 @@ server <- function(input, session,output) {
     
   })
   
+  ATTR_many_levels = reactive({
+    X = RAW()
+    X[] = lapply(X,as.character)
+    X[is.na(X)|X==""]="N/A"
+    LEVELS = sapply(X,function(x) length(unique(x)))
+    R = X[,LEVELS>MAXLEVEL()&LEVELS<150, drop=FALSE]
+    validate(need(ncol(R)>0,"No such attributes."))
+    dim(R)
+    
+    data_ranked_Score(R,STATUS())$DATA
+  })
+  
+  ATTR_many_levels_drive = reactive({
+    X = ATTR_many_levels()
+    
+    validate(need(
+      (toupper("Drive.Serial.Num") %in% toupper(names(upload())))|
+        (toupper("DRIVE_SERIAL_NUM") %in% toupper(names(upload())))
+      ,
+      "There is no column name like 'Drive.Serial.Num' or 'DRIVE_SERIAL_NUM' in data (case-insensitive)"
+    ))
+    
+    
+    DSN = upload()[,toupper(names(upload())) %in% toupper(c("Drive.Serial.Num","DRIVE_SERIAL_NUM"))]
+    
+    X2 = data.frame(DSN,X, STATUS = STATUS())
+    
+    X3 = X2[order(DSN),]
+    
+    X3$DSN = as.character(X3$DSN)
+    
+    X4 = ddply(X3,.(DSN),function(df) {
+      if( sum(df$STATUS=="F")> 0){
+        R = df[df$STATUS=="F",]
+        if(nrow(R)>1) {R = R[1,]} else {R = R}
+      } else{
+        R = df[1,]
+      }
+      R
+    })
+    
+    
+    X5 = X4[,-c(1,ncol(X4))]
+    
+    LEVELS = sapply(X5,function(x) length(unique(x)))
+    dim(X5)
+    X5
+  })
+  
   attr_names = reactive({
-
+    
     X = ATTR()
     STATUS = STATUS()
     
@@ -114,11 +163,11 @@ server <- function(input, session,output) {
   
   #output$L = renderPrint( sapply(ATTR()[,attr_names()$rejected],function(x) nlevels(factor(x))))
   output$L = renderPrint(attr_names()$rejected)
-
+  
   output$CHOOSER = renderUI({
-
+    
     choices = attr_names()$rejected
-
+    
     chooserInput("chooser",
                  leftLabel="In",
                  rightLabel="Out",
@@ -143,7 +192,7 @@ server <- function(input, session,output) {
     validate(need(!is.null(upload()),"Please upload data."))
     validate(need(!is.null(input$chooser$left),""))
     R = ATTR()[,input$chooser$left]
-
+    
     R
   })
   
@@ -161,7 +210,7 @@ server <- function(input, session,output) {
   })
   
   attr_ranked_p_2 = reactive({
-      attr_ranked_fit_2()$DATA
+    attr_ranked_fit_2()$DATA
   })
   
   selected_attr_names_2 = reactive({names(attr_ranked_p_2())})
@@ -182,12 +231,12 @@ server <- function(input, session,output) {
   
   attr_ranked_fit = reactive({
     withProgress(message = 'Ranking Attributes...', {
-
+      
       
       X = SELECTED()
       STATUS = STATUS()
       X[] = lapply(X,as.character)
-
+      
       
       R = X
       
@@ -249,23 +298,23 @@ server <- function(input, session,output) {
       "There is no column name like 'Drive.Serial.Num' or 'DRIVE_SERIAL_NUM' in data (case-insensitive)"
     ))
     
-#     validate(need(
-#       (toupper("Head.Phys.Psn") %in% toupper(names(upload())))|
-#       (toupper("HEAD_PHYS_PSN") %in% toupper(names(upload())))
-#         ,
-#       "There is no column name like 'Head.Phys.Psn' or 'HEAD_PHYS_PSN' in data (case-insensitive)"
-#                   ))
+    #     validate(need(
+    #       (toupper("Head.Phys.Psn") %in% toupper(names(upload())))|
+    #       (toupper("HEAD_PHYS_PSN") %in% toupper(names(upload())))
+    #         ,
+    #       "There is no column name like 'Head.Phys.Psn' or 'HEAD_PHYS_PSN' in data (case-insensitive)"
+    #                   ))
     
     DSN = upload()[,toupper(names(upload())) %in% toupper(c("Drive.Serial.Num","DRIVE_SERIAL_NUM"))]
     
-#     PSN = upload()[,toupper(names(upload())) %in% toupper(c("Head.Phys.Psn","HEAD_PHYS_PSN"))]
+    #     PSN = upload()[,toupper(names(upload())) %in% toupper(c("Head.Phys.Psn","HEAD_PHYS_PSN"))]
     
     X2 = data.frame(DSN,X, STATUS = STATUS())
     
     X3 = X2[order(DSN),]
     
     X3$DSN = as.character(X3$DSN)
-
+    
     X4 = ddply(X3,.(DSN),function(df) {
       if( sum(df$STATUS=="F")> 0){
         R = df[df$STATUS=="F",]
@@ -274,7 +323,7 @@ server <- function(input, session,output) {
         R = df[1,]
       }
       R
-      })
+    })
     
     
     X5 = X4[,-c(1,ncol(X4))]
@@ -292,14 +341,14 @@ server <- function(input, session,output) {
     
     DSN = upload()[,toupper(names(upload())) %in% toupper(c("Drive.Serial.Num","DRIVE_SERIAL_NUM"))]
     
-#    PSN = upload()[,toupper(names(upload())) %in% toupper(c("Head.Phys.Psn","HEAD_PHYS_PSN"))]
+    #    PSN = upload()[,toupper(names(upload())) %in% toupper(c("Head.Phys.Psn","HEAD_PHYS_PSN"))]
     
     X = data.frame(DSN,STATUS)
     
     X$DSN = as.character(X$DSN)
-
+    
     X2 = X[order(DSN),]
-
+    
     X3 = ddply(X2,.(DSN),function(df) {
       if( sum(df$STATUS=="F")> 0){
         R = df[df$STATUS=="F",]
@@ -314,7 +363,7 @@ server <- function(input, session,output) {
   })
   
   output$L = renderPrint({
-
+    
     x = STATUS_drive()
     x
     head(attr_ranked_p_drive())
@@ -342,7 +391,7 @@ server <- function(input, session,output) {
     })
   })
   
-
+  
   
   
   output$selected_attr_names = renderTable({
@@ -350,20 +399,20 @@ server <- function(input, session,output) {
           P_value = selected_attr_pvalue()
           ,
           Levels = as.vector(selected_attr_levels())
-          )
+    )
   })
   #---------------------------------------------------------------------
   
   para_ranked_fit = eventReactive(input$go,{
     withProgress(message = 'Ranking Parametrics...', {
-    X = upload()
-    STATUS = STATUS()
-    LEVELS = sapply(X,function(x) length(unique(x)))
-    R = X[, sapply(X,is.numeric)&LEVELS>0.2*nrow(X) ]
-    
-    validate(need(ncol(R)>2,"No parametrics."))
-    fit=data_ranked_logist(R,STATUS=="F")
-    fit
+      X = upload()
+      STATUS = STATUS()
+      LEVELS = sapply(X,function(x) length(unique(x)))
+      R = X[, sapply(X,is.numeric)&LEVELS>0.2*nrow(X) ]
+      
+      validate(need(ncol(R)>2,"No parametrics."))
+      fit=data_ranked_logist(R,STATUS=="F")
+      fit
     })
   })
   
@@ -377,7 +426,7 @@ server <- function(input, session,output) {
   output$ranked_para_names = renderTable({
     cbind(PARAs = names(para_ranked_fit()$DATA),
           P_value = para_ranked_fit()$P
-          )
+    )
   })
   
   MAXP = eventReactive(input$update,{
@@ -394,7 +443,7 @@ server <- function(input, session,output) {
     input$maxlevel
   })
   
-
+  
   
   
   output$rawdata = renderDataTable({
