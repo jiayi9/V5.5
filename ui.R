@@ -133,7 +133,7 @@ helpText("Attributes with code 401 are not eligible for computing p-value and ma
                                  ),
                           column(2,
                                  br(),
-                                checkboxInput("showbarcolor","Bar Color",value = FALSE)
+                                checkboxInput("showbarcolor","Bar Color",value = TRUE)
                                 )
                           ),
                         hr(),
