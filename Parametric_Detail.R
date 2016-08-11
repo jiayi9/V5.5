@@ -1,18 +1,56 @@
 #para_ranked_fit()$DATA
 
 #STATUS()
+output$ranked_para_names = renderDataTable({
+  colfunc <- colorRampPalette(c("red", "white"))
+  colors = colfunc(100)
+  X = data.frame(P_value = para_p_table())
+  datatable(X,options =
+              list(
+                paging = FALSE,
+                ordering = FALSE,
+                filtering = FALSE,
+                searching =FALSE,
+                rownames = TRUE
+                #,
+                #                     autoWidth = TRUE,
+                #                     columnDefs = list(
+                #                       list(width="1px"))
+              )
+  )%>% 
+    formatStyle(
+      paste0("P_value"),
+      color = styleInterval(seq(0,1,length.out = 99), colors)
+    )
+  
+})
+
+
+output$ranked_para_names_table = renderTable({
+
+  X = data.frame(Names =names(para_p_table()),P_value = para_p_table())
+  rownames(X) = 1:nrow(X)
+  X
+  
+})
 
 
 output$para_select <- renderUI({
-  selectInput("uni_para", "Parameter:",  choices = names(para_ranked_fit()$DATA),selected = names(para_ranked_fit()$DATA)[1])
+  req(para())
+  X = para()
+  selectInput("uni_para", "Parameter:",  choices = names(X),selected = names(X)[1])
 }) 
 
 output$para_scatter_1 <- renderUI({
-  selectInput("para_scatter_1", "X parameter:",  choices = names(para_ranked_fit()$DATA),selected = names(para_ranked_fit()$DATA)[1])
+  req(para())
+  X = para()
+  selectInput("para_scatter_1", "X parameter:",  choices = names(X),selected = names(X)[1])
 }) 
 
 output$para_scatter_2 <- renderUI({
-  selectInput("para_scatter_2", "Y parameter:",  choices = names(para_ranked_fit()$DATA),selected = names(para_ranked_fit()$DATA)[2])
+  req(para())
+  X = para()
+  selectInput("para_scatter_2", "Y parameter:",  choices = names(X),selected = names(X)[2])
 }) 
 
 #single chart
@@ -45,16 +83,19 @@ output$para_scatter_2 <- renderUI({
 # })
 
 output$scatterplot = renderPlot({
+  req(input$para_scatter_1,input$para_scatter_2,Y(),para())
   withProgress(message = 'Making scatterplot', {
-    FAIL = STATUS()
+    FAIL = Y()
     highlight =   (FAIL == "F")
     
+    X = para()
+    
     if(is.null(input$para_scatter_1) & is.null(input$para_scatter_2)){
-      temp = data.frame(x = para_ranked_fit()$DATA[,1], y = para_ranked_fit()$DATA[,2])
-      namex = names(para_ranked_fit()$DATA)[1]
-      namey = names(para_ranked_fit()$DATA)[2]
+      temp = data.frame(x = X[,1], y = X[,2])
+      namex = names(X)[1]
+      namey = names(X)[2]
     } else {
-      temp = data.frame(x = para_ranked_fit()$DATA[,input$para_scatter_1], y = para_ranked_fit()$DATA[,input$para_scatter_2])
+      temp = data.frame(x = X[,input$para_scatter_1], y = X[,input$para_scatter_2])
       namex = input$para_scatter_1
       namey = input$para_scatter_2
     }
@@ -92,7 +133,13 @@ output$parametrics = renderUI({
              uiOutput("para_scatter_2")
       ),
       column(9,
-             plotOutput("scatterplot",height="500px")
+             plotOutput("scatterplot",height="500px",click = "plot1_click", brush = brushOpts(id = "plot1_brush")),
+             h4("Points near click"),
+             verbatimTextOutput("click_info"),
+             h4("Selected points"),
+             verbatimTextOutput("brush_info")
+             
+#             plotOutput("scatterplot",height="500px")
       )
     )
 #    hr(),
@@ -101,6 +148,58 @@ output$parametrics = renderUI({
 #       column(9,plotOutput("single_para"))
 #     )
   )
+})
+
+
+output$click_info <- renderPrint({
+  req(input$para_scatter_1,input$para_scatter_2,Y(),para())
+  
+  FAIL = Y()
+  highlight =   (FAIL == "F")
+  
+  X = para()
+  
+  if(is.null(input$para_scatter_1) & is.null(input$para_scatter_2)){
+    temp = data.frame(x = X[,1], y = X[,2])
+    namex = names(X)[1]
+    namey = names(X)[2]
+  } else {
+    temp = data.frame(x = X[,input$para_scatter_1], y = X[,input$para_scatter_2])
+    namex = input$para_scatter_1
+    namey = input$para_scatter_2
+  }
+  #temp = data.frame(temp,DSN())
+  #names(temp) = c(namex,namey,"Drive Serial Num")
+  
+  X = nearPoints(temp, input$plot1_click, addDist = TRUE)
+  
+  X = data.frame(DSN()[X$x],X[,1:2])
+  names(X) = c("Drive_Serial_Num",namex,namey)
+  X
+})
+
+output$brush_info <- renderPrint({
+  req(input$para_scatter_1,input$para_scatter_2,Y(),para())
+  
+  FAIL = Y()
+  highlight =   (FAIL == "F")
+  
+  X = para()
+  
+  if(is.null(input$para_scatter_1) & is.null(input$para_scatter_2)){
+    temp = data.frame(x = X[,1], y = X[,2])
+    namex = names(X)[1]
+    namey = names(X)[2]
+  } else {
+    temp = data.frame(x = X[,input$para_scatter_1], y = X[,input$para_scatter_2])
+    namex = input$para_scatter_1
+    namey = input$para_scatter_2
+  }
+
+  X = brushedPoints(temp, input$plot1_brush)
+  X = data.frame(DSN()[X$x],X[,1:2])
+  names(X) = c("Drive_Serial_Num",namex,namey)
+  X
 })
 
 # output$fails_table = renderTable({

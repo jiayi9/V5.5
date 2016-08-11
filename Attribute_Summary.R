@@ -1,40 +1,12 @@
-# Plugin
-#attr_ranked_p_re()
-#STATUS()
-#labelx()
 
-
-
-#attr_ranked_p_re_drive()
-#STATUS_drive()
-#labelx_drive()
-
-#input$head_or_drive    input$go   NUM_CLUST_A()
-
-
-output$barplot_text = renderText({
-  n = ncol(attr_ranked_p_re_drive())
-  m = ceiling(n/3)
-  paste0("There are ",n," attributes and ",m," clusters analyzed by ",input$head_or_drive,".")
-})
-
-observeEvent(input$go,{
-  
-  withProgress(message = 'Making barcharts', {
     
+    Ncol = ncol(D)
+    Rows = floor(Ncol/5)
     
-    if(input$head_or_drive =="DRIVE"){
-      X = attr_ranked_p_re_drive()
-    } else{
-      X = attr_ranked_p_re()
-    }
-    Ncol = ncol(X)
-    ROWS = floor( Ncol/5 )
-    
-    
+    #-
     output$hist_1 = renderUI({
-      if (ROWS>0) {
-        table_output_list = lapply(1:ROWS,function(i){
+      if (Rows>0) {
+        barplot_output_list = lapply(1:Rows,function(i){
           
           name = paste("row",i,sep="")
           tags$div(class = "group-output",
@@ -42,14 +14,16 @@ observeEvent(input$go,{
                    br()  
           )
         })
-        do.call(tagList,table_output_list)
+        do.call(tagList,barplot_output_list)
       } else{
         NULL
       }
     })
+    #-
     
-    if(ROWS>0){
-      for(j in 1:ROWS){
+    #-
+    if(Rows>0){
+      for(j in 1:Rows){
         local({
           my_i = j
           
@@ -57,27 +31,23 @@ observeEvent(input$go,{
           
           output[[name]] = renderPlot({
             
-            if(input$head_or_drive =="DRIVE"){
-              X = attr_ranked_p_re_drive()
-              y = STATUS_drive()
-              labelx = labelx_drive()
-            } else{
-              X = attr_ranked_p_re()
-              y = STATUS()
-              labelx = labelx()
-            }
-            
+            #D
+            #y
+            y = y()
+            #labelx
+            N = length(unique(labelx$group))
             for(i in 1:5){
               index=my_i*5-5+i
               assign(paste("p",i,sep=""),
-                     barplot_1(X[,index],
+                     barplot_1(D[,index],
                                y,
-                               names(X)[index],
-                               chisq_test(X[,index],y,floor(nrow(X)*0.05)),
+                               names(D)[index],
+                               chisq_test(D[,index],y,nrow(D)*input$chisq_tol,ignoreNA = ignoreNA()),
                                labelx,
-                               NUM_CLUST_A(),
+                               N,
+                               #NUM_CLUST_A(),
                                showbarcolor = input$showbarcolor
-                     ),envir = globalenv() 
+                     )#,envir = globalenv() 
               )
             }
             g = cbind(p1,p2,p3,p4,p5, size="first")
@@ -89,196 +59,137 @@ observeEvent(input$go,{
         })
       }
     }
-    
+    #-
     
     Nleft = Ncol%%5
-
+    eachRow = 5
+    N = NUM_CLUST_A()
+    STATUS = y()
+    
+    if(Nleft>0){
+      pvalues=c()
+      pvalues[(Rows*eachRow+1):(Rows*eachRow+Nleft)] = sapply(1:Nleft, function(i){chisq_test(D[,Rows*eachRow+i],STATUS,nrow(D)*input$chisq_tol,ignoreNA = ignoreNA())})
+    }
+    p0=ggplot(mtcars, aes(x = wt, y = mpg)) + geom_blank()+theme(
+      panel.background = element_rect(fill = NA), 
+      panel.grid = element_blank(),
+      axis.title=element_blank(),
+      axis.ticks=element_blank(),
+      axis.text=element_blank()
+    )
+    p0 = ggplotGrob(p0)
+    
+    if(Nleft==1){
+      pp1 = barplot_1( D[,Rows*eachRow+1],
+                       STATUS,
+                       names(D)[Rows*eachRow+1],
+                       pvalues[Rows*eachRow+1],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      gx = cbind(pp1, p0,p0,p0,p0, size="first")
+      gx$heights = grid::unit.pmax(pp1$heights)
+      
+    }
+    if(Nleft==2){
+      pp1 = barplot_1( D[,Rows*eachRow+1],
+                       STATUS,
+                       names(D)[Rows*eachRow+1],
+                       pvalues[Rows*eachRow+1],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      pp2 = barplot_1( D[,Rows*eachRow+2],
+                       STATUS,
+                       names(D)[Rows*eachRow+2],
+                       pvalues[Rows*eachRow+2],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      gx = cbind(pp1, pp2,p0,p0,p0, size="first")
+      gx$heights = grid::unit.pmax(pp1$heights,pp2$heights)
+      
+    }
+    if(Nleft==3){
+      pp1 = barplot_1( D[,Rows*eachRow+1],
+                       STATUS,
+                       names(D)[Rows*eachRow+1],
+                       pvalues[Rows*eachRow+1],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      pp2 = barplot_1( D[,Rows*eachRow+2],
+                       STATUS,
+                       names(D)[Rows*eachRow+2],
+                       pvalues[Rows*eachRow+2],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      pp3 = barplot_1( D[,Rows*eachRow+3],
+                       STATUS,
+                       names(D)[Rows*eachRow+3],
+                       pvalues[Rows*eachRow+3],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)  
+      gx = cbind(pp1, pp2,pp3,p0,p0, size="first")
+      gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights)
+      
+    }
+    if(Nleft==4){
+      pp1 = barplot_1( D[,Rows*eachRow+1],
+                       STATUS,
+                       names(D)[Rows*eachRow+1],
+                       pvalues[Rows*eachRow+1],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      pp2 = barplot_1( D[,Rows*eachRow+2],
+                       STATUS,
+                       names(D)[Rows*eachRow+2],
+                       pvalues[Rows*eachRow+2],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)
+      
+      pp3 = barplot_1( D[,Rows*eachRow+3],
+                       STATUS,
+                       names(D)[Rows*eachRow+3],
+                       pvalues[Rows*eachRow+3],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)  
+      pp4 = barplot_1( D[,Rows*eachRow+4],
+                       STATUS,
+                       names(D)[Rows*eachRow+4],
+                       pvalues[Rows*eachRow+4],
+                       labelx,
+                       N,
+                       showbarcolor = input$showbarcolor)  
+      gx = cbind(pp1, pp2,pp3,pp4,p0, size="first")
+      gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights,pp4$height)
+      
+    }
     output$hist_2 = renderPlot({
-      
-      if(input$head_or_drive =="DRIVE"){
-        X3 = attr_ranked_p_re_drive()
-        STATUS = STATUS_drive()
-        labelx = labelx_drive()
-      } else{
-        X3 = attr_ranked_p_re()
-        STATUS = STATUS()
-        labelx = labelx()
-      }
-      
-      eachRow=5
-      N=NUM_CLUST_A()
-      Nrow=ROWS
-      if(Nleft>0){
-        pvalues=c()
-        pvalues[(Nrow*eachRow+1):(Nrow*eachRow+Nleft)] = sapply(1:Nleft, function(i){chisq_test(X3[,Nrow*eachRow+i],STATUS,floor(nrow(X3)*0.05))})
-      }
-      
-      
-      
-      p0=ggplot(mtcars, aes(x = wt, y = mpg)) + geom_blank()+theme(
-        panel.background = element_rect(fill = NA), 
-        panel.grid = element_blank(),
-        axis.title=element_blank(),
-        axis.ticks=element_blank(),
-        axis.text=element_blank()
-      )
-      p0 = ggplotGrob(p0)
-      
-      if(Nleft==1){
-        pp1 = barplot_1( X3[,Nrow*eachRow+1],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+1],
-                         pvalues[Nrow*eachRow+1],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        gx = cbind(pp1, p0,p0,p0,p0, size="first")
-        gx$heights = grid::unit.pmax(pp1$heights)
-        
-      }
-      if(Nleft==2){
-        pp1 = barplot_1( X3[,Nrow*eachRow+1],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+1],
-                         pvalues[Nrow*eachRow+1],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        pp2 = barplot_1( X3[,Nrow*eachRow+2],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+2],
-                         pvalues[Nrow*eachRow+2],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        gx = cbind(pp1, pp2,p0,p0,p0, size="first")
-        gx$heights = grid::unit.pmax(pp1$heights,pp2$heights)
-        
-      }
-      if(Nleft==3){
-        pp1 = barplot_1( X3[,Nrow*eachRow+1],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+1],
-                         pvalues[Nrow*eachRow+1],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        pp2 = barplot_1( X3[,Nrow*eachRow+2],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+2],
-                         pvalues[Nrow*eachRow+2],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        pp3 = barplot_1( X3[,Nrow*eachRow+3],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+3],
-                         pvalues[Nrow*eachRow+3],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)  
-        gx = cbind(pp1, pp2,pp3,p0,p0, size="first")
-        gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights)
-        
-      }
-      if(Nleft==4){
-        pp1 = barplot_1( X3[,Nrow*eachRow+1],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+1],
-                         pvalues[Nrow*eachRow+1],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        pp2 = barplot_1( X3[,Nrow*eachRow+2],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+2],
-                         pvalues[Nrow*eachRow+2],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)
-        
-        pp3 = barplot_1( X3[,Nrow*eachRow+3],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+3],
-                         pvalues[Nrow*eachRow+3],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)  
-        pp4 = barplot_1( X3[,Nrow*eachRow+4],
-                         STATUS,
-                         names(X3)[Nrow*eachRow+4],
-                         pvalues[Nrow*eachRow+4],
-                         labelx,
-                         N,
-                         showbarcolor = input$showbarcolor)  
-        gx = cbind(pp1, pp2,pp3,pp4,p0, size="first")
-        gx$heights = grid::unit.pmax(pp1$heights,pp2$heights,pp3$heights,pp4$height)
-        
-      }
       grid::grid.newpage()
       if(Nleft ==0 ){NULL}else(grid::grid.draw(gx))
-      
     })
 
-    
-  })
-  
-  if(Nleft == 0){
-    output$hist_2_x = renderUI(
-
+    if(Nleft == 0){
+      output$hist_2_x = renderUI(
+        
         plotOutput("hist_2",height="0px")
-
-    )
-  } else {
-    output$hist_2_x = renderUI(
-      
+        
+      )
+    } else {
+      output$hist_2_x = renderUI(
+        
         plotOutput("hist_2",height=paste0(input$onewaybarheight,"px"))
-  
-    )
-  }
-  
-
-  output$attr_clust_chart = renderPlot({
-    withProgress(message = 'Drawing attr clustering dendrogram', {
-
-      if(input$head_or_drive =="DRIVE"){
-        X = attr_ranked_p_re_drive()
-      } else{
-        X = attr_ranked_p_re()
-      }
-      
-      fit = ClustOfVar::hclustvar(X.quali = X)
-      
-      p1 = ggdendrogram(as.dendrogram(fit), rotate=TRUE)
-      
-      df2<-data.frame(cluster=cutree(fit,NUM_CLUST_A()),states=factor(fit$labels,levels=fit$labels[fit$order]))
-      df3<-ddply(df2,.(cluster),summarise,pos=mean(as.numeric(states)))
-      p2 = ggplot(df2,aes(states,y=1,fill=factor(cluster)))+geom_tile()+
-        scale_y_continuous(expand=c(0,0))+
-        theme(axis.title=element_blank(),
-              axis.ticks=element_blank(),
-              axis.text=element_blank(),
-              legend.position="none")+coord_flip()+
-        geom_text(data=df3,aes(x=pos,label=cluster))
-      gp1<-ggplotGrob(p1)
-      gp2<-ggplotGrob(p2)  
-      maxHeight = grid::unit.pmax(gp1$heights[2:5], gp2$heights[2:5])
-      gp1$heights[2:5] <- as.list(maxHeight)
-      gp2$heights[2:5] <- as.list(maxHeight)
-      grid.arrange(gp2, gp1, ncol=2,widths=c(1/6,5/6))
-    }) 
-  })
-  
-  output$ATTR_CLUST_CHART = renderUI({
-    plotOutput("attr_clust_chart",height=paste0(ncol(attr_ranked_p_re())*20,"px")) 
-  })
-
-  
-})
-
-
+        
+      )
+    }

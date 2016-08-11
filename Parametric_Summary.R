@@ -5,41 +5,79 @@
 
 
 
-scatterData = eventReactive(list(input$flush,input$go), {
-  #validate(need(ncol(para_ranked_top())>0,""))
-  
-  para_ranked_top()[,sample(1:18)]
-},ignoreNULL=TRUE)
+# scatterData = eventReactive(list(input$flush,input$go), {
+#   
+#   para_ranked_top()[,sample(1:18)]
+# },ignoreNULL=TRUE)
+
+MAX_P_PARA = reactive({
+input$max_p_para
+})
+
+scatterData = eventReactive(list(input$analyze),{
+  req(para())
+  pvalues = para_p_table()
+  R = para()[,pvalues< MAX_P_PARA()]
+  validate(need(ncol(R)>0,"No parametrics have P value < specified value (0.05 by default)"))
+  R
+})
+
+
+output$scatterData_log = renderPrint({
+  print_summary(scatterData())
+})
+
+
+para_clust_fit = reactive({
+  req(scatterData())
+  X = scatterData()
+  validate(need(ncol(X)>2,"Need at least 2 parametrics to do clustering.\nTry increasing clustering Sensitivity value in the advanced settings."))
+  fit = ClustOfVar::hclustvar(X.quanti =  X)
+  fit
+})
+
 
 scatter_color = reactive({
-  #validate(need(ncol(para_ranked_top())>0,""))
-  
-  X = para_ranked_top()
-  fit = ClustOfVar::hclustvar(X.quanti =  X[,1:18])
-  
-  temp = cutree(fit,NUM_CLUST_P())
+  req(para_clust_fit())
+  fit = para_clust_fit()
+  temp = cutree(fit,h = PARA_CLUST_H())
   data.frame(NAME = names(temp),  group = as.vector(temp))
 })
 
-observeEvent(list(input$flush,input$go),{
-  withProgress(message = 'Drawing top 18 parametrics', {
+output$scatter_color_log = renderPrint({
+  scatter_color()
+})
+
+#observeEvent(list(input$flush,input$go),{
+observeEvent(list(input$analyze,input$flush),{
+  req(scatterData(),Y(),scatter_color())
+  withProgress(message = 'Drawing Summary parametrics', {
   D = scatterData()
-  FAIL = STATUS()
+  D = D[,sample(1:ncol(D))]
+  FAIL = Y()
   highlight =   (FAIL == "F")
   
   color = scatter_color()
   
-  for ( i in 1:9){
+  N = length(unique(color$group))
+  
+  n_pair = floor(ncol(D)/2)
+  
+  L = list()
+  
+  for ( i in 1:n_pair){
     x = D[,2*i-1]
     y = D[,2*i]
     namex = names(D)[2*i-1]
     namey = names(D)[2*i]
     temp = data.frame(x,y)
-    temp2 = Random_Sample_prop(temp,0.1)
+    temp2 = Random_Sample_prop(temp,0.5)
     temp3 = temp[highlight,]
     
-    xcol = ggplotColours(NUM_CLUST_P())[  color[color[,1]==namex,2]      ]
-    ycol = ggplotColours(NUM_CLUST_P())[  color[color[,1]==namey,2]      ]
+    
+    
+    xcol = ggplotColours(N)[  color[color[,1]==namex,2]      ]
+    ycol = ggplotColours(N)[  color[color[,1]==namey,2]      ]
     
     p = ggplot(data=temp2,aes(x=x,y=y)) +
       geom_point()+
@@ -49,56 +87,50 @@ observeEvent(list(input$flush,input$go),{
       theme(axis.title.x=element_text(colour=xcol))+
       theme(axis.title.y=element_text(colour=ycol))
     
-    assign(paste("p",i,sep=""),p)
+    #assign(paste("p",i,sep=""),p)
+    L = c(L,list(p))
     
   }
-  output$scatter1 =renderPlot({
-    grid::grid.newpage()
-    g=cbind(ggplotGrob(p1),ggplotGrob(p2),ggplotGrob(p3),size="first")
-    grid::grid.draw(g)
-    
+#   output$scatter1 =renderPlot({
+#     grid::grid.newpage()
+#     g=cbind(ggplotGrob(p1),ggplotGrob(p2),ggplotGrob(p3),size="first")
+#     grid::grid.draw(g)
+#     
+#     })
+#   
+#   output$scatter2 =renderPlot({
+#     grid::grid.newpage()
+#     g=cbind(ggplotGrob(p4),ggplotGrob(p5),ggplotGrob(p6),size="first")
+#     grid::grid.draw(g)
+#   })
+#   
+#   output$scatter3 =renderPlot({
+#     grid::grid.newpage()
+#     g=cbind(ggplotGrob(p7),ggplotGrob(p8),ggplotGrob(p9),size="first")
+#     grid::grid.draw(g)
+#     
+#   })
+    output$para_tops = renderPlot({
+      withProgress(message = 'Making scatterplots', {
+        
+        do.call(grid.arrange,c(L,ncol=3))
+      })
     })
-  
-  output$scatter2 =renderPlot({
-    grid::grid.newpage()
-    g=cbind(ggplotGrob(p4),ggplotGrob(p5),ggplotGrob(p6),size="first")
-    grid::grid.draw(g)
-  })
-  
-  output$scatter3 =renderPlot({
-    grid::grid.newpage()
-    g=cbind(ggplotGrob(p7),ggplotGrob(p8),ggplotGrob(p9),size="first")
-    grid::grid.draw(g)
-    
-  })
-  
-#   output$scatter1 = renderPlot({p1})
-#   output$scatter2 = renderPlot({p2})
-#   output$scatter3 = renderPlot({p3})
-#   output$scatter4 = renderPlot({p4})
-#   output$scatter5 = renderPlot({p5})
-#   output$scatter6 = renderPlot({p6})
-#   output$scatter7 = renderPlot({p7})
-#   output$scatter8 = renderPlot({p8})
-#   output$scatter9 = renderPlot({p9})
+
   })
   
 })
 
 
-# output$para_tops = renderPlot({
-#   withProgress(message = 'Making scatterplots', {
-# 
-#     grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9,ncol=3)
-#   })
-# })
+
 
 output$para_clust_chart = renderPlot({
+  req(para_clust_fit())
   withProgress(message = 'Clustering parametrics', {
-    fit = ClustOfVar::hclustvar(X.quanti =  para_ranked_top()[,1:18])
+    fit = para_clust_fit()
     p1 = ggdendrogram(as.dendrogram(fit), rotate=TRUE)
     
-    df2<-data.frame(cluster=cutree(fit,NUM_CLUST_P()),
+    df2<-data.frame(cluster=cutree(fit,h=PARA_CLUST_H()),
                     states=factor(fit$labels,levels=fit$labels[fit$order]))
     df3<-ddply(df2,.(cluster),summarise,pos=mean(as.numeric(states)))
     p2 = ggplot(df2,aes(states,y=1,fill=factor(cluster)))+geom_tile()+
@@ -118,27 +150,30 @@ output$para_clust_chart = renderPlot({
 })
 
 output$para_text = renderText({
-  para_ranked_fit()
+ # para_ranked_fit()
   NULL
 })
 
+output$PARA_CLUST_CHART = renderUI({
+  HEIGHT = paste0(ncol(scatterData())*25,"px")
+  plotOutput("para_clust_chart",height = HEIGHT)  
+})
+
+
+output$PARA_TOPS = renderUI({
+  n = ncol(scatterData()) -1
+  validate(need(n>0,"No significant parametrics"))
+  Nrow = ceiling(n/6)
+  plotOutput("para_tops",height = paste0(350*Nrow,"px"))
+})
 
 output$para = renderUI({
   tags$div(class = "group-output",
            actionButton("flush","FLUSH ORDER", icon = icon('fa fa-refresh')),
            textOutput("para_text"),
-           #plotOutput("para_tops",height="900px"),
-           plotOutput("scatter1"),
-           plotOutput("scatter2"),
-           plotOutput("scatter3"),
-#            plotOutput("scatter4"),
-#            plotOutput("scatter5"),
-#            plotOutput("scatter6"),
-#            plotOutput("scatter7"),
-#            plotOutput("scatter8"),
-#            plotOutput("scatter9"),
+           uiOutput("PARA_TOPS"),
            hr(),
-           plotOutput("para_clust_chart")
+           uiOutput("PARA_CLUST_CHART")
   )
 })
 
