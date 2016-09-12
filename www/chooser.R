@@ -13,7 +13,10 @@ chooserInput <- function(inputId, leftLabel, rightLabel, leftChoices, rightChoic
     singleton(tags$head(
       tags$script(src="chooser-binding.js"),
       tags$style(type="text/css",
-                 HTML(".chooser-container { display: inline-block; }")
+                 HTML(".chooser-container { display: inline-block; vertical-align: top; }
+                      
+                      
+                      ")
       )
     )),
     div(id=inputId, class="chooser",
@@ -21,6 +24,8 @@ chooserInput <- function(inputId, leftLabel, rightLabel, leftChoices, rightChoic
             tags$select(class="left", size=size, multiple=multiple, leftChoices)
         ),
         div(class="chooser-container chooser-center-container",
+            tags$br(),
+            tags$br(),
             icon("arrow-circle-o-right", "right-arrow fa-3x"),
             tags$br(),
             icon("arrow-circle-o-left", "left-arrow fa-3x")
