@@ -401,7 +401,15 @@ server <- function(input, session,output) {
     tol = input$chisq_tol
     y = y()
     R = data_ranked_Score(X = X,y = y, nrow(X)*tol)$DATA
+    
+    cat("-----------------------\n")
+    print("attr_ranked")
+    print(names(R))
+#     print(round(data_ranked_Score(X = X,y = y, nrow(X)*tol)$P,4))
+    cat("-----------------------\n")
+    
     })
+    R
   })
 
   output$attr_ranked_log = renderPrint({
@@ -443,16 +451,29 @@ server <- function(input, session,output) {
     
     fit = NULL
     count = 1
-    if(is.null(fit) & count<=10){
+    seeds = 1:10
+    while(is.null(fit) & count<=10){
       print(paste("Robust Column clustering round",count))      
-      fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))},
-                     warning = function(w) {
-                       suppressWarnings({
-                         ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))
-                       })
-                     },
-                     error = function(e) {NULL}
-      )
+      set.seed(seeds[count])
+      if( count == 1){
+        fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K,1))},
+                       warning = function(w) {
+                         suppressWarnings({
+                           ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K,1))
+                         })
+                       },
+                       error = function(e) {NULL}
+        )
+      } else {
+        fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))},
+                       warning = function(w) {
+                         suppressWarnings({
+                           ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))
+                         })
+                       },
+                       error = function(e) {NULL}
+        )
+      }
       count = count+1
       
     }
@@ -505,6 +526,13 @@ server <- function(input, session,output) {
     
     
     labelx = data.frame(Names=names(labels),group = paste("Group",as.vector(labels)),num=as.vector(labels))
+    
+    cat("-------------\n")
+    print("labelx")
+    print(labelx)
+    cat("-------------\n")
+    
+    
     labelx
     })
   })
@@ -536,7 +564,12 @@ server <- function(input, session,output) {
 #     labelx = data.frame(Names=names(labels),group = paste("Group",as.vector(labels)),num=as.vector(labels))
     labelx = labelx()
     
-    D = rearrange(X = K, labelx)
+    D = rearrange(X = K, labelx, chisq_table())
+
+cat("-----------------------\n")
+print("rearranged")
+print(names(D))
+cat("-----------------------\n")
     
 #    print(labelx)
     

@@ -381,7 +381,18 @@ barplot_2 = function(x1,x2,FAIL,xname1="factor1",xname2="factor2"){
   p1  
 }
 
-rearrange = function(X,clust){
+rearrange = function(X,clust,p_table = NULL){
+  
+  if(!is.null(p_table)){
+    clust$pvalue = as.vector(p_table[as.character(clust$Names)])
+#     print(clust$Names)
+#     print(p_table[clust$Names])
+#     print(clust)
+    clust = clust[order(clust$pvalue),]
+#    print(clust)
+    clust = clust[,-4]
+  }
+  
   N = ncol(X)
   numclust = length(unique(clust$num))
   for(i in 1:N){
@@ -395,7 +406,8 @@ rearrange = function(X,clust){
       R[index] = clust$num[i]
     }
   }
-  R=1:numclust
+  
+  #R=1:numclust
   Names = as.character(clust$Names)
   for(i in 1:numclust){
     if(i==1) K=Names[clust$num==R[i]]
