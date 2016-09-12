@@ -2,8 +2,10 @@
 
 
 
-
+library(rpivotTable)
 output$pivot = renderRpivotTable({
+  
+  
   withProgress(message = 'Constructing pivot table', {
     
     if(input$pivot_level == 0) {
