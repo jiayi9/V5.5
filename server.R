@@ -6,6 +6,7 @@ InsPack <- function(pack) {
     print(paste(pack," already installed")) 
   }
 }
+InsPack("rpivotTable")
 InsPack("ggplot2")
 InsPack("gtable")
 InsPack("ClustOfVar")
@@ -15,6 +16,7 @@ InsPack("scales")
 InsPack("ggvis")
 InsPack("grid")
 InsPack("DT")
+library(rpivotTable)
 library(ggplot2)
 library(gtable)
 library(ClustOfVar)
@@ -166,7 +168,7 @@ server <- function(input, session,output) {
   
   
   output$chisq_table_drive_log = renderPrint({
-    START = proc.time()
+    #START = proc.time()
     
     chisq_table_drive()
     #print(proc.time()-START)
@@ -418,15 +420,56 @@ server <- function(input, session,output) {
       
     K = attr_ranked()
     
+#     print(dim(K))
+#     print(names(K))
+    
     validate(need(ncol(K)>2,"Need at least 3 attributes to cluster."))
     
-    set.seed(123)
-    fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K,1))},
-                   warning = function(w) { NULL},
-                   error = function(e) {NULL}
-    )
+#    write.csv(K,"D:/reports/for_debugging.csv",row.names=FALSE)
     
-    validate(need(!is.null(fit),"Clustering Issue. Try changing p value or examine raw data."))
+    validate(need(
+      all(
+      sapply(K, function(x) length(unique(x)))>1
+      ),
+      "After aggregation, some columns have only 1 value."))
+    
+#     print(sapply(K,is.numeric))
+#     print(sapply(K,is.character))
+#     print(sapply(K,is.factor))
+    
+    set.seed(123)
+#    K[] = lapply(K,as.factor)
+    
+    
+    fit = NULL
+    count = 1
+    if(is.null(fit) & count<=10){
+      print(paste("Robust Column clustering round",count))      
+      fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))},
+                     warning = function(w) {
+                       suppressWarnings({
+                         ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))
+                       })
+                     },
+                     error = function(e) {NULL}
+      )
+      count = count+1
+      
+    }
+    
+    
+#     fit = tryCatch({ ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K,1))},
+#                    warning = function(w) {
+#                      suppressWarnings({
+#                       ClustOfVar::hclustvar(X.quali = Random_Sample_prop(K[,sample(1:ncol(K))],1))
+#                       })
+#                      },
+#                    error = function(e) {NULL}
+#     )
+
+#fit= ClustOfVar::hclustvar(X.quali = K)
+    
+    validate(need(!is.null(fit),"Data failed the robust column clustering. Try changing p value, change analysis level or examine raw data."))
     fit
     })
   })
@@ -450,10 +493,13 @@ server <- function(input, session,output) {
     n = ceiling(x/3) 
     
     labels = tryCatch({
+      print("clust cutree code 1 - success")
       cutree(fit, h=ATTR_CLUST_H())
     },warning = function(w){
-      cutree(fit,k = n)
+      print("clust cutree code 1 - success with warnings")
+      cutree(fit, h=ATTR_CLUST_H())
     },error = function(e){
+      print("clust cutree code 0 - failure with h, cutree by k instead (k = ceiling(ncol(X)/3)) ")
       cutree(fit,k = n)
     })
     
@@ -605,7 +651,10 @@ server <- function(input, session,output) {
  
     IN = (MISSINGS_PERCENT < input$para_missing_percent) & (UNIQUE > input$para_unique)
     })
-    X[,IN]
+    R = X[,IN]
+    validate(need(ncol(R)>0,"All parametrics are of low quality. Examine Raw data or view summary.\n Or try increase missing percent tolerance in advanced settings"))
+    R
+    
   })
 
   output$PARA_log = renderPrint({
@@ -620,6 +669,7 @@ server <- function(input, session,output) {
       
     req(PARA(),Y())
     X = PARA()
+
     Y = Y()
     fit=data_ranked_logist(X,Y=="F")
     })
@@ -660,7 +710,7 @@ server <- function(input, session,output) {
 
   source("report.R",local = TRUE)
 
-  
+  source("Pivot.R", local = TRUE)
 
   output$raw_data = renderDataTable({
     upload()
@@ -718,7 +768,8 @@ server <- function(input, session,output) {
 
 
 
-ReportList =                                                              c(
+ReportList =                                                              
+  c(
   "Attributes summary",
   "Attributes clustering",
   "Two way barplot",
@@ -740,5 +791,26 @@ observeEvent(input$reportSelectAll,{
     updateCheckboxGroupInput(session ,"reportList", selected = "")
   }
 })
+
+
+
+exportedFile = reactive({
+ # req(upload(),ATTR_drive(),DSN_drive(),Y_drive())
+  validate(need(!is.null(upload()),"Please upload and process data first"))
+  R = data.frame(DRIVE_SERIAL_NUM = DSN_drive(),
+                            STATUS = Y_drive(),
+                            ATTR_drive()
+  )
+  R
+})
+
+output$downloadAGG = downloadHandler(
+  filename = function(){"aggregated_attrs.csv"},
+  content = function(file){
+    write.csv( exportedFile()  ,file, row.names=FALSE)
+  }
+  )
+
+
 
 }

@@ -26,6 +26,7 @@ ui <- fluidPage(
                                           uiOutput("TARGET_UI"),
                                           uiOutput("TARGET_DEFINE_UI"),
                                           checkboxInput("define_non_empty_as_fail",label = "Mark all non-empty values as Fails",value = FALSE)
+                                          ,downloadButton('downloadAGG', 'Download aggregated Attrs',class="btn btn-default btn-xs")
                                           
                          
                                           
@@ -38,14 +39,16 @@ ui <- fluidPage(
                                           checkboxInput("no_agg",label = "No aggregation column",value = FALSE),
                                           numericInput(inputId="max_p",label="Cut-off P value for ATTRs",value=0.1,min=0.01,max=1,step=0.01),
                                           numericInput(inputId="max_level",label="Max number of Levels for ATTRs",value=15,min=3,max=50,step=1),
+                                          helpText("Refreshing page for new uploading."),
+                                          
                                           fluidRow(column(7,""),column(5,
-                                                                       br(),
+                                                                       #br(),
                                                                        actionButton("update","Process Data",class="btn btn-primary btn-sm")#icon=icon("fa fa-check")),
                                                                        
                                                                        ))
                                           
                                           
-                                          
+
                                           
                                           ),
                                    column(1,
@@ -56,7 +59,6 @@ ui <- fluidPage(
                                          )
                                    )
                                  #narrow fluid row ends up
-                                 ,helpText("Refreshing recommended for new uploading.")
                                  ),
                           column(4,class = "grey",
                                  h3("#3 Analyze"),
@@ -96,9 +98,9 @@ ui <- fluidPage(
                                    ),
 
                                  
-
-                                 actionButton("analyze","GO!",class="btn btn-primary btn-sm")
                                  
+                                 actionButton("analyze","GO!",class="btn btn-primary btn-sm")
+                                 ,helpText("Find results in other tabs at the top")
                                  
                                  )
                           
@@ -110,13 +112,17 @@ ui <- fluidPage(
                                  
                                  column(4,class="grey2",
                                         h4("Attributes Not Used"),
-                                        tableOutput("left_table")
+                                        tableOutput("left_table"),
+                                        helpText("Code 401 means chisq test cannot be performed")
                                  ),
                                  
                                  column(5,
                                         br(),
                                         br(),br(),
-                                        h6("  "),
+                                        p(""),
+
+                                        
+
                                         
                                         uiOutput("CHOOSER")
                                  ),
@@ -154,6 +160,20 @@ ui <- fluidPage(
                         
                )
                #tabPanel upload&filter ends up
+               
+               ,tabPanel("Explore",icon = icon("cube"),
+                         p(""),
+                         br(),br(),br(),
+                         radioButtons("pivot_level","Construct the Pivot table for:",inline = TRUE,
+                                      choices = c("Head-level attributes and parametrcis data"=0,
+                                                  "Drive-level attributes data"=1,
+                                                  "Raw uploaded data" = 2)
+                                      
+                         ),
+                         rpivotTableOutput("pivot")
+               )
+               
+               
                ,navbarMenu("Attributes",icon = icon("pie-chart"),
                            tabPanel("Attributes Summary",
                                     br(),br(),br(),
@@ -180,12 +200,12 @@ ui <- fluidPage(
                                     br(),br(),br(),
                                     h4("2-way barplot"),
                                     fluidRow(
-                                      column(4,
+                                      column(2,
                                              uiOutput("factor1"),
                                              uiOutput("factor2"),
                                              uiOutput("two_way_size")
                                              ),
-                                      column(8,
+                                      column(10,
                                              uiOutput("TWO_WAY_BARPLOT")
                                              
                                              )
@@ -373,6 +393,18 @@ ui <- fluidPage(
                                                      )
                                               )
                                         ))
+
+#                               ,tabPanel("Pivot",icon = icon("cube"),
+#                                         p(""),
+#                                         br(),br(),br(),
+#                                         radioButtons("pivot_level","Construct the Pivot table for:",inline = TRUE,
+#                                                      choices = c("Head level all data (raw data)"=0,
+#                                                                  "Drive level attributes data"=1)
+#                                                      
+#                                                      ),
+#                                         rpivotTableOutput("pivot")
+#                                         )
+
 #DataView ends up
                               ,tabPanel("Report",icon = icon("dedent"),
                                         br(),br(),br(),

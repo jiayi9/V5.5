@@ -40,7 +40,7 @@ chisq_test = function(x,y,n,sig=3,ignoreNA = 1){
   options(warn=1)
   library(plyr)
   M = data.frame(x=x,y=y,stringsAsFactors = FALSE)
-#  M = M[!is.na(x),]
+ # M = M[!is.na(x),]
   if(ignoreNA) {
     M = M[!x=="N/A",]
   }
@@ -48,53 +48,94 @@ chisq_test = function(x,y,n,sig=3,ignoreNA = 1){
   x = M[,1]
   y = M[,2]
   
-  #>=3 group
-  temp = plyr::ddply(M, .(x), summarise, sum = sum(y=="F"), .drop = FALSE)
-  index1 = temp[,2]>=sig
-  
-  #>= n group
-  index2 = as.vector(table(x)>=n)
-  
-  big_group = names(table(x))[ index1 |index2 ]
+ 
+ library(dplyr)
+ temp = M %>% group_by(x) %>% summarise(sum = sum(y=="F"))    
+ 
+ #>=3 group  
+ big1 = temp$x[temp$sum>sig]
+ 
+ #>= n group
+ big2 = names(table(x))[table(x)>n]
+ 
+ big_group = union(big1,big2)  
+ 
+ 
+ 
+ 
+#   #>=3 group
+#   temp = plyr::ddply(M, .(x), summarise, sum = sum(y=="F"), .drop = FALSE)
+#   index1 = temp[,2]>=sig
+#   
+#   #>= n group
+#   index2 = as.vector(table(x)>=n)
+#   
+#   big_group = names(table(x))[ index1 |index2 ]
   
   M2 = M[M$x %in% big_group,]
   R = 400
   
-  if(  length(big_group)<=1  || length(unique(M2$x))<=1 || length(unique(M2$y))<=1 ) {
-    R= 401
-  } else{
+#   if(  length(big_group)<=1  || length(unique(M2$x))<=1 || length(unique(M2$y))<=1 ) {
+#     R= 401
+#   } else{
+#     suppressWarnings({R = (chisq.test(M2$x,M2$y)$p.value)})
+#   }
+  R = tryCatch({
+    chisq.test(M2$x,M2$y)$p.value
+  },
+  warning = function(w){
     suppressWarnings({R = (chisq.test(M2$x,M2$y)$p.value)})
+  },
+  error = function(e){
+    401
   }
-  
+  )
   return(R)
 }
 
 # used in Ranking attributes
-Score = function(x,y,n,sig=3){
+Score = function(x,y,n,sig=3, ignoreNA=1){
   options(warn=1)
   library(plyr)
   M = data.frame(x=x,y=y,stringsAsFactors = FALSE)
-  M = M[!is.na(x),]
+  if(ignoreNA) {
+    M = M[!x=="N/A",]
+  }
+  #M = M[!is.na(x),]
   x = M[,1]
   y = M[,2]
-  
+
   #>=3 group
-  temp = plyr::ddply(M, .(x), summarise, sum = sum(y=="F"), .drop = FALSE)
-  index1 = temp[,2]>=sig
+  #   temp = plyr::ddply(M, .(x), summarise, sum = sum(y=="F"), .drop = FALSE)
+  #   index1 = temp[,2]>=sig
+
+  #>= n group
+  #   index2 = as.vector(table(x)>=n)
+  
+  #   big_group = names(table(x))[ index1 |index2 ]
+  
+  library(dplyr)
+  temp = M %>% group_by(x) %>% summarise(sum = sum(y=="F"))  
+  #>=3 group  
+  big1 = temp$x[temp$sum>sig]
   
   #>= n group
-  index2 = as.vector(table(x)>=n)
+  big2 = names(table(x))[table(x)>n]
   
-  big_group = names(table(x))[ index1 |index2 ]
-  
+  big_group = union(big1,big2)  
+
   M2 = M[M$x %in% big_group,]
-  R = 400
-  
-  if(  length(big_group)<=1  || length(unique(M2$x))<=1 || length(unique(M2$y))<=1 ) {
-    R= 401
-  } else{
-    suppressWarnings({R = (chisq.test(M2$x,M2$y)$p.value)})
-  }
+
+  R = tryCatch({
+      chisq.test(M2$x,M2$y)$p.value
+    },
+    warning = function(w){
+      suppressWarnings({R = (chisq.test(M2$x,M2$y)$p.value)})
+    },
+    error = function(e){
+      401
+    }
+  )
   
   #maxF = max(temp[,2])
   if(R == 401){
@@ -625,8 +666,9 @@ PlotLogistGroup_jitter = function(attr,para,STATUS,attr_name="ATTR",para_name="P
   D3 = Random_Sample_prop(D,0.2)
   
   p = ggplot(D,aes(x=attr,y=para)) + 
-    geom_jitter(alpha=0.5)+
     geom_boxplot() + 
+    geom_jitter(alpha=0.5,width=0.4)+
+
     geom_point(data = D2,aes(x=attr,y=para),color="red",size=4)+
     
     #geom_jitter(data=D3,aes(x=attr,y=para),alpha=0.5)+

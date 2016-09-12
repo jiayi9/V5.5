@@ -357,7 +357,7 @@ observeEvent(list(input$dominant_attr_go,input$use_attr_list_1),{
           TT = paste(names(SECOND_PARAS())[my_i],"    ANOVA p-value:",round(pvalue,3),sep=" ")
           
           output[[name]] = renderPlot({
-            p = ggplot(D, aes(factor(x), y))+geom_boxplot()+geom_jitter()+
+            p = ggplot(D, aes(factor(x), y))+geom_boxplot()+geom_jitter(width=0.4)+
               xlab(input$box_attr) + ggtitle(TT)+
               theme(plot.title = element_text(size=15,color="blue"),
                     axis.title.y=element_blank(),
@@ -610,7 +610,7 @@ observeEvent(list(input$dominant_para_go,input$use_attr_list_2),{
           TT = paste(names(SECOND_ATTRS())[my_i],"    ANOVA p-value:",round(pvalue,3),sep=" ")
           
           output[[name]] = renderPlot({
-            p = ggplot(D, aes(factor(x), y))+geom_boxplot()+geom_jitter()+
+            p = ggplot(D, aes(factor(x), y))+geom_boxplot()+geom_jitter(width=0.4)+
               xlab(input$box_attr) + ggtitle(TT)+
               theme(plot.title = element_text(size=15,color="blue"),
                     axis.title.y=element_blank(),

@@ -118,9 +118,9 @@
   
   output$HEAD_OR_DRIVE = renderUI({
     if(!input$no_agg){
-      selectInput("head_or_drive","Analyze Attributes by:",choices = c("DRIVE","HEAD"),selected = "DRIVE")
+      selectInput("head_or_drive","Analyze Attributes by",choices = c("DRIVE","HEAD"),selected = "DRIVE")
     } else {
-      selectInput("head_or_drive","Analyze Attributes by:",choices = c("DRIVE","HEAD"),selected = "HEAD")
+      selectInput("head_or_drive","Analyze Attributes by",choices = c("DRIVE","HEAD"),selected = "HEAD")
       
     }
 

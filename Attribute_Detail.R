@@ -137,6 +137,7 @@ output$two_way_size = renderUI({
   X = if(input$head_or_drive =="HEAD") ATTR() else ATTR_drive()
   req(input$factor_1,input$factor_2)
   WIDTH = uniqueLength(X[,input$factor_1])*uniqueLength(X[,input$factor_2])*40
+  WIDTH = ifelse(WIDTH>=1000,1000,WIDTH)
   div(
     numericInput("twoway_width","2-way barplot Width",value = WIDTH,step = 10),
     numericInput("twoway_height","2-way barplot Height",value = 400,step=10)
@@ -180,6 +181,7 @@ output$custom_barplot_size = renderUI({
   X = attr_many_levels()
   req(input$factor_3)
   WIDTH = uniqueLength(X[,input$factor_3])*20
+  WIDTH = ifelse(WIDTH>=1300,1300,WIDTH)
   div(
     fluidRow(
       column(6,
