@@ -170,7 +170,7 @@ ui <- fluidPage(
                                                   "Raw uploaded data" = 2)
                                       
                          ),
-                         rpivotTableOutput("pivot")
+                         rpivotTable::rpivotTableOutput("pivot")
                )
                
                
