@@ -419,25 +419,46 @@ rearrange = function(X,clust,p_table = NULL){
   X[,K]
 }
 
+# data_ranked_logist = function(X,y){
+#   n = ncol(X)
+#   #   DATA = na.omit(data.frame(X,y))
+#   #   XX = DATA[,1:n]
+#   #   y = DATA$y
+#   pvalues = rep(1,n)
+#   for (i in 1:n){
+#     fit = glm(y~X[,i],family="binomial")
+#     pvalues[i] = coef(summary(fit))[2,4]
+#   }
+#   ORDER = order(pvalues)
+#   R =list()
+#   R$DATA = X[,ORDER]
+#   R$P = round(sort(pvalues),3)
+#   names(R$P) = names(R$DATA)
+#   #attr(R,"pvalues") = data.frame(NAMES = as.character(names(X)), p = round(pvalues,3))
+#   return(R)  
+# }
+
 data_ranked_logist = function(X,y){
   n = ncol(X)
-  #   DATA = na.omit(data.frame(X,y))
-  #   XX = DATA[,1:n]
-  #   y = DATA$y
+  
   pvalues = rep(1,n)
   for (i in 1:n){
-    fit = glm(y~X[,i],family="binomial")
-    pvalues[i] = coef(summary(fit))[2,4]
+    pvalues[i] = tryCatch({coef(summary(glm(y~X[,i],family="binomial")))[2,4]},
+                          warning = function(w){
+                            suppressWarnings({
+                              coef(summary(glm(y~X[,i],family="binomial")))[2,4]
+                            })
+                          },
+                          error =function(e){1}
+    )
   }
   ORDER = order(pvalues)
   R =list()
   R$DATA = X[,ORDER]
   R$P = round(sort(pvalues),3)
   names(R$P) = names(R$DATA)
-  #attr(R,"pvalues") = data.frame(NAMES = as.character(names(X)), p = round(pvalues,3))
-  return(R)  
+  return(R) 
 }
-
 
 InteractionMatrix = function(A,P,STATUS){
   

@@ -2,7 +2,15 @@
     inFile <- input$file1
     if (is.null(inFile))
       return(NULL)
-    R = read.csv(inFile$datapath, header=TRUE, sep=",",stringsAsFactors=FALSE)
+    ext = tools::file_ext(inFile)[1]
+    print(ext)
+    if(ext =="csv"){
+      R = read.csv(inFile$datapath, header=TRUE, sep=",",stringsAsFactors=FALSE)
+    } else if( ext == "rda"){
+      R = readRDS(inFile$datapath)
+    } else {
+      stop("Upoaded file format unsupported")
+    }
     R
   })
 

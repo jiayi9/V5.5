@@ -30,6 +30,11 @@ output$pivot = renderRpivotTable({
       )      
     }
     
+    D = D[,sort(names(D))]
+    D = data.frame(D[,c("DRIVE_SERIAL_NUM","STATUS")],
+                   D[,setdiff(names(D),c("DRIVE_SERIAL_NUM","STATUS"))]
+                  )
+    
     rpivotTable(D)
   })
   

@@ -164,10 +164,11 @@ ui <- fluidPage(
                ,tabPanel("Explore",icon = icon("cube"),
                          p(""),
                          br(),br(),br(),
-                         radioButtons("pivot_level","Construct the Pivot table for:",inline = TRUE,
-                                      choices = c("Head-level attributes and parametrcis data"=0,
-                                                  "Drive-level attributes data"=1,
-                                                  "Raw uploaded data" = 2)
+                         radioButtons("pivot_level","Construct the Pivot table for:",inline = TRUE,selected = 2,
+                                      choices = c("Raw uploaded data" = 2,
+                                                  "Head-level attributes and parametrcis data"=0,
+                                                  "Drive-level attributes data"=1
+                                                  )
                                       
                          ),
                          rpivotTable::rpivotTableOutput("pivot")
