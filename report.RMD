@@ -16,7 +16,9 @@ output: html_document
 K = attr_ranked()
 fit = cluster_fit()
 labelx = labelx()
-D = rearrange(X = K, labelx)
+#D = rearrange(X = K, labelx)
+D = rearrange(X = K, labelx, chisq_table())
+
 Ncol = ncol(D)
 Rows = floor(Ncol/5)
 
